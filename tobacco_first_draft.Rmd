@@ -1,0 +1,275 @@
+---
+title: "Youth Tobacco First Draft"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r}
+library(readr)
+library(dplyr) # functions like summarize
+library(ggplot2) # for making plots
+library(mosaic) # convenient interface to t.test function
+library(readr)
+library(gmodels)
+library(plyr)
+library(readr)
+library(readxl)
+
+nyts2014 <- read_excel("~/Summer Research 2020/nyts2014.xlsx")
+nyts2015 <- read_excel("~/Summer Research 2020/nyts2015.xlsx")
+nyts2016 <- read_excel("~/Summer Research 2020/nyts2016.xlsx", 
+    sheet = "nyts2016")
+nyts2017 <- read_excel("~/Summer Research 2020/nyts2017.xlsx")
+nyts2018 <- read_excel("~/Summer Research 2020/nyts2018.xlsx")
+nyts2019 <- read_excel("~/Summer Research 2020/nyts2019.xlsx")
+```
+
+```{r}
+nyts2014$year_conducted <- nyts2014$year
+nyts2015$year_conducted <- 2015
+nyts2016$year_conducted <- 2016
+nyts2017$year_conducted <- 2017
+nyts2018$year_conducted <- 2018
+nyts2019$year_conducted <- 2019
+```
+
+```{r}
+# The first time used an e-cig variable has different meanings per observation for 2019 compared to the other years so we shall recode for 2019 to match other years
+
+nyts2019$Q35_2 <- nyts2019$Q35
+nyts2019$Q35_2[nyts2019$Q35==".S"]<-"1"
+table(unlist(nyts2019$Q35_2))
+nyts2019$Q35_2[nyts2019$Q35=="1"]<-"2"
+nyts2019$Q35_2[nyts2019$Q35=="2"]<-"3"
+nyts2019$Q35_2[nyts2019$Q35=="3"]<-"4"
+nyts2019$Q35_2[nyts2019$Q35=="4"]<-"5"
+nyts2019$Q35_2[nyts2019$Q35=="5"]<-"6"
+nyts2019$Q35_2[nyts2019$Q35=="6"]<-"7"
+nyts2019$Q35_2[nyts2019$Q35=="7"]<-"8"
+nyts2019$Q35_2[nyts2019$Q35=="8"]<-"9"
+nyts2019$Q35_2[nyts2019$Q35=="9"]<-"10"
+nyts2019$Q35_2[nyts2019$Q35=="10"]<-"11"
+nyts2019$Q35_2[nyts2019$Q35=="11"]<-"12"
+nyts2019$Q35_2[nyts2019$Q35=="12"]<-"13"
+```
+
+```{r}
+##creating unique dataset
+best_friend_offered_ecig <- c(nyts2014$qn33,nyts2015$q30,nyts2016$Q29, nyts2017$Q37, nyts2018$Q37, nyts2019$Q46)
+curious_ecig<- c(nyts2014$qn30,nyts2015$q27,nyts2016$Q25, nyts2017$Q27, nyts2018$Q27, nyts2019$Q43)
+first_ecig_use <- c(nyts2014$qn34, nyts2015$q31,nyts2016$Q30, nyts2017$Q29, nyts2018$Q29, nyts2019$Q35_2)
+p30d_num_days_ecig_use <- c(nyts2014$qn35, nyts2015$q32,nyts2016$Q31, nyts2017$Q31, nyts2018$Q31, nyts2019$Q37)
+ever_used_ecig <- c(nyts2014$qn31,nyts2015$q28,nyts2016$Q26, nyts2017$Q28, nyts2018$Q28, nyts2019$Q34)
+year_conducted <- c(nyts2014$year_conducted, nyts2015$year_conducted, nyts2016$year_conducted, nyts2017$year_conducted, nyts2018$year_conducted, nyts2019$year_conducted)
+race_s <- c(nyts2014$race_s,nyts2015$RACE_S,nyts2016$RACE_S, nyts2017$RACE_S, nyts2018$RACE_S, nyts2019$RACE_S)
+age <- c(nyts2014$qn1,nyts2015$q1,nyts2016$Q1, nyts2017$Q1, nyts2018$Q1, nyts2019$Q1)
+sex <- c(nyts2014$qn2,nyts2015$q2,nyts2016$Q2, nyts2017$Q2, nyts2018$Q2, nyts2019$Q2)
+grade <- c(nyts2014$qn3,nyts2015$q3,nyts2016$Q3, nyts2017$Q3, nyts2018$Q3, nyts2019$Q3)
+analysis_weight <- c(nyts2014$wt, nyts2015$finwgt, nyts2016$finwgt, nyts2017$finwgt, nyts2018$finwgt, nyts2019$finwgt)
+
+youth_tobacco <- data.frame(best_friend_offered_ecig, curious_ecig, first_ecig_use, p30d_num_days_ecig_use, ever_used_ecig, year_conducted, race_s, age, sex, grade, analysis_weight)
+```
+
+
+
+```{r} 
+## Age Variable
+
+# omit "0" in front of all observations in the age variable because "01" and "1" both occur separately in the variable
+youth_tobacco$age_2 <- youth_tobacco$age
+youth_tobacco$age_2[youth_tobacco$age=="01"]<-"1"
+youth_tobacco$age_2[youth_tobacco$age=="02"]<-"2"
+youth_tobacco$age_2[youth_tobacco$age=="03"]<-"3"
+youth_tobacco$age_2[youth_tobacco$age=="04"]<-"4"
+youth_tobacco$age_2[youth_tobacco$age=="05"]<-"5"
+youth_tobacco$age_2[youth_tobacco$age=="06"]<-"6"
+youth_tobacco$age_2[youth_tobacco$age=="07"]<-"7"
+youth_tobacco$age_2[youth_tobacco$age=="08"]<-"8"
+youth_tobacco$age_2[youth_tobacco$age=="09"]<-"9"
+
+# dropping observations with "0" infront of number
+youth_tobacco$age_2 <- droplevels(youth_tobacco$age_2)
+
+# inputting actual age as levels
+youth_tobacco$age_2 <- revalue(youth_tobacco$age_2, c("1"="9", "2"="10", "3"="11", "4"="12", "5"="13", "6"="14", "7"="15", "8"="16", "9"="17", "10"="18", "11"="19 or older"))
+
+table(unlist(youth_tobacco$age_2))
+```
+```{r}
+## Sex variable
+
+# inputting actual sexes as levels
+youth_tobacco$sex_2 <- youth_tobacco$sex
+youth_tobacco$sex_2 <-revalue(youth_tobacco$sex_2, c("1"="Male", "2"="Female"))
+                                                      
+table(unlist(youth_tobacco$sex_2))
+```
+```{r}
+## Grade variable
+
+# inputting actual grades as levels
+youth_tobacco$grade_2 <- youth_tobacco$grade
+youth_tobacco$grade_2 <- revalue(youth_tobacco$grade_2, c("1"="6", "2"="7", "3"="8", "4"="9", "5"= "10", "6"="11", "7"= "12", "8"="Ungraded or other grade"))
+
+table(unlist(youth_tobacco$grade_2))
+```
+
+```{r}
+## Race variable
+
+# inputting actual race as levels
+youth_tobacco$race_2 <- youth_tobacco$race_s
+youth_tobacco$race_2 <- revalue(youth_tobacco$race_2, c("1"="NH-White", "2"="NH-Black", "3"="Hispanic", "4"="NH-Asian", "5"= "NH-AI/AN", "6"="NH-NHOPI"))
+
+table(unlist(youth_tobacco$race_2))
+```
+```{r}
+## Ever_used_ecig variable
+
+# inputting actual answers as levels
+youth_tobacco$ever_used_ecig_2 <- youth_tobacco$ever_used_ecig
+youth_tobacco$ever_used_ecig_2 <- revalue(youth_tobacco$ever_used_ecig_2, c("1"="Yes", "2"="No"))
+
+table(unlist(youth_tobacco$ever_used_ecig_2))
+```
+
+```{r}
+## Curious_ecig variable
+
+# inputting actual answers as levels
+youth_tobacco$curious_ecig_2 <- youth_tobacco$curious_ecig
+youth_tobacco$curious_ecig_2 <- revalue(youth_tobacco$curious_ecig_2, c("1"="Definitely yes", "2"="Probably yes", "3"="Probably not", "4"="Definitely not"))
+
+table(unlist(youth_tobacco$curious_ecig_2))
+
+```
+.S was introduced in 2019 as "Legitimate Skip" for that question which does not occur anywhere else. What would be the best placement for .S, whether to put it with "Definitely not" (because other years have a higher reported total for that level) or to omit it?
+From an interview with FDA, (https://www.fda.gov/tobacco-products/youth-and-tobacco/questions-and-answers-national-youth-tobacco-survey-how-we-collect-and-analyze-data-understand-youth),"for the 2019 survey, we moved from asking these questions on a paper-and-pencil scantron test to electronic data collection on tablets. With the paper and pencil, each question was asked to every student. So if we asked you about your cigarette use and you’ve never smoked a cigarette, you still had to go through all of the other questions about cigarettes and indicate that you never used them. In this new format, you skip those questions since they aren’t relevant to your situation."  (seems like putting it with definitely not might be the best choice?)
+
+```{r}
+## First_ecig_use variable
+
+# omit "0" in front of all observations in the first_ecig_use variable because "01" and "1" both occur separately in the variable
+youth_tobacco$first_ecig_use_2 <- youth_tobacco$first_ecig_use
+youth_tobacco$first_ecig_use_2 <- revalue(youth_tobacco$first_ecig_use_2, c("01"="1", "02"="2", "03"="3", "04"="4", "05"= "5", "06"="6", "07"= "7", "08"="8", "09"="9"))
+
+# inputting actual answers as levels
+youth_tobacco$first_ecig_use_2 <- revalue(youth_tobacco$first_ecig_use_2, c("1"="Never used", "2"="8 years old or younger", "3"="9", "4"="10", "5"="11", "6"="12", "7"="13", "8"="14", "9"="15", "10"="16", "11"="17", "12"="18", "13"="19 or older"))
+
+table(unlist(youth_tobacco$first_ecig_use_2))
+```
+```{r}
+## p30d_num_days_ecig_use variable
+
+table(unlist(youth_tobacco$p30d_num_days_ecig_use))
+```
+We need to talk about this variable, there is a big discrepancy
+```{r}
+## Best_friend_offered_ecig variable
+
+# inputting actual answers as levels
+youth_tobacco$best_friend_offered_ecig_2 <- youth_tobacco$best_friend_offered_ecig
+youth_tobacco$best_friend_offered_ecig_2 <- revalue(youth_tobacco$best_friend_offered_ecig_2, c("1"="Definitely yes", "2"="Probably yes", "3"="Probably not", "4"="Definitely not"))
+
+table(unlist(youth_tobacco$best_friend_offered_ecig_2))
+```
+Again, .S is one of the choices
+
+```{r}
+## df noExtra = the .Ns, .Zs, .Ss, *s and **s have been dropped
+
+library(dplyr)
+youth_tobacco_noExtra <- filter(youth_tobacco, sex_2 %in% c("Male", "Female"))
+youth_tobacco_noExtra <- filter(youth_tobacco_noExtra , age_2 %in% c("9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19 or older"))
+youth_tobacco_noExtra <- filter(youth_tobacco_noExtra, race_2 %in% c("NH-White", "NH-Black", "Hispanic", "NH-Asian", "NH-AI/AN", "NH-NHOPI"))
+youth_tobacco_noExtra <- filter(youth_tobacco_noExtra, grade_2 %in% c("6", "7", "8", "9", "10", "11", "12", "Ungraded or other grade"))
+youth_tobacco_noExtra <- filter(youth_tobacco_noExtra, curious_ecig_2 %in% c("Definitely yes", "Probably yes", "Probably not", "Definitely not"))
+youth_tobacco_noExtra <- filter(youth_tobacco_noExtra, ever_used_ecig_2 %in% c("Yes", "No"))
+youth_tobacco_noExtra <- filter(youth_tobacco_noExtra, first_ecig_use_2 %in% c("Never used", "8 years old or younger", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19 or older"))
+youth_tobacco_noExtra <- filter(youth_tobacco_noExtra, best_friend_offered_ecig_2 %in% c("Definitely yes", "Probably yes", "Probably not", "Definitely not"))
+
+table(unlist(youth_tobacco_noExtra$sex_2))
+youth_tobacco_noExtra <- droplevels(youth_tobacco_noExtra)
+```
+
+```{r}
+## checking to see how many NAs are in the dataframe
+nrow(youth_tobacco[is.na(youth_tobacco),])
+nrow(youth_tobacco_noExtra[is.na(youth_tobacco_noExtra),])
+youth_tobacco[is.na(youth_tobacco),]
+```
+26034/117472=.22
+22% seems too much to drop all NAs from df of the original df
+
+288/102745=.003
+.3% seems reasonable to drop all NAs from the _noNA df
+
+```{r}
+## df without NAs and extras
+
+youth_tobacco_noNA <- youth_tobacco_noExtra[!(is.na(youth_tobacco_noExtra)),]
+```
+Error: a problem similar to the genderrace cenus - almost 2 mil obs.
+
+```{r}
+xtabs(~ ever_used_ecig_2 + sex_2, data=youth_tobacco)
+xtabs(~ ever_used_ecig_2 + sex_2, data=youth_tobacco_noExtra)
+```
+Seems like dropping the .N and * would be best so I will start looking only from the _noExtra df
+```{r}
+# make sure numbers are greater than 0
+xtabs(~ ever_used_ecig_2 + sex_2, data=youth_tobacco_noExtra)
+xtabs(~ ever_used_ecig_2 + age_2, data=youth_tobacco_noExtra)
+xtabs(~ ever_used_ecig_2 + grade_2, data=youth_tobacco_noExtra)
+xtabs(~ ever_used_ecig_2 + race_2, data=youth_tobacco_noExtra)
+```
+
+```{r}
+logit_ever_used <- glm(ever_used_ecig_2 ~ sex_2 + grade_2 + race_2 + age_2, data = youth_tobacco_noExtra, family = "binomial")
+summary(logit_ever_used)
+confint(logit_ever_used)
+```
+The variable age would be better treated as a numerical variable, but I am not sure if it would be reasonable to say "19 or older" is "19".
+
+Sex has one of the lowest p-value suggesting a strong association of the sex of the student with the probability of having tried an e-cigarette. The positive coefficient for this predictor suggests that all other variables being equal, the female student is more likely to have used an e-cigarette. This means being female increases the log odds by .186.
+
+The interpretation of race:  race2Hispanic has the largest p-value and since it is greater than .05, there isn't a strong association (but the other races all have p-values<.05)
+Being black will increase the log odds of having used an e-cigarette by .67 compared to being white. Being Asian compared to being white will increase it by 1.05. Being Hispanic compared to being white only increases the log odds of haing used an e-cig by .005 which correspondes to the small p-value as having not a very strong effect to the response variable.
+
+Interestingly, the odds of having used an e-cig are, on a log scale, 3.21 times greater if the student is 11 years old than if the student is 9 years old, but the odds are only 1.51 greater if the student is 17 years old. (Interpretation refers back to the reference age which is 9 or should it be from 10-11, 11-12, 12-13 and so forth)
+
+```{r}
+library(car)
+vif(logit_ever_used)
+```
+The VIF for grade and age are greater than 10 suggesting high multicollinearity. Should choose one and set the variable to numerical rather than categorical.
+```{r}
+anova(logit_ever_used, test="Chisq")
+```
+Deviance tells us whether the model is a good fit. 
+Null deviance: 103572  on 102744  degrees of freedom
+Residual deviance:  94696  on 102721  degrees of freedom
+The difference between the null deviance and the residual deviacne is 8876 which suggests that the mdoel became better when sex, age, grade, and race were added compared to just the intercept term.
+
+** next to do is to create more models - explanatory variabeles individually, two added together, etc to see whether full model with all demographics is needed
+
+```{r}
+predicted.data <- data.frame(
+  probability.of.ever_used_ecig_2=logit_ever_used$fitted.values,
+  ever_used_ecig_2=youth_tobacco_noExtra$ever_used_ecig_2)
+ 
+predicted.data <- predicted.data[
+  order(predicted.data$probability.of.ever_used_ecig_2, decreasing=FALSE),]
+predicted.data$rank <- 1:nrow(predicted.data)
+
+ggplot(data=predicted.data, aes(x=rank, y=probability.of.ever_used_ecig_2)) +
+  geom_point(aes(color=ever_used_ecig_2), alpha=1, shape=4, stroke=2) +
+  xlab("Index") +
+  ylab("Predicted probability of having used an e-cigarette")
+ggplot(data=predicted.data, aes(x=rank, y=probability.of.ever_used_ecig_2)) +
+  geom_point(aes(color=ever_used_ecig_2), alpha=1, shape=1, stroke=2) +
+  xlab("Index") +
+  ylab("Predicted probability of having used an e-cigarette")
+```
+Does not look like log line/curve even with minor adjustments to shape and stroke
