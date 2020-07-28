@@ -243,7 +243,7 @@ Interestingly, the odds of having used an e-cig are, on a log scale, 3.21 times 
 library(car)
 vif(logit_ever_used)
 ```
-The VIF for grade and age are greater than 10 suggesting high multicollinearity. Should choose one and set the variable to numerical rather than categorical.
+The VIF for grade and age are greater than 10 suggesting high multicollinearity. Should choose one and set the variable to numerical rather than categorical. (MO: This isn't surprising, right? If you use all subsets regression then this might give you an easy way to choose.)
 ```{r}
 anova(logit_ever_used, test="Chisq")
 ```
