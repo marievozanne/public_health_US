@@ -232,10 +232,18 @@ confint(logit_ever_used)
 ```
 The variable age would be better treated as a numerical variable, but I am not sure if it would be reasonable to say "19 or older" is "19".
 
+MO comment: I think we talked about this - it may be better to treat age as numerical, with the caveat that 19 doesn't really mean 19. There are ways to account for this in survival models, if your response is the time at which something happened. There should be ways to account for this in the covariates too -- this seems like a form of truncation. While I don't think you need to do it now, it might be worth looking into way to deal with censoring and truncation for covariates in logistic regression models at some point.
+
 Sex has one of the lowest p-value suggesting a strong association of the sex of the student with the probability of having tried an e-cigarette. The positive coefficient for this predictor suggests that all other variables being equal, the female student is more likely to have used an e-cigarette. This means being female increases the log odds by .186.
 
+MO comment: The log odds of what? You want to be really explicit about this. What does it mean to have all other variables equal? I know what you mean, but I think this is a place to shore up the language and make it easier for someone else to read.
+
 The interpretation of race:  race2Hispanic has the largest p-value and since it is greater than .05, there isn't a strong association (but the other races all have p-values<.05)
-Being black will increase the log odds of having used an e-cigarette by .67 compared to being white. Being Asian compared to being white will increase it by 1.05. Being Hispanic compared to being white only increases the log odds of haing used an e-cig by .005 which correspondes to the small p-value as having not a very strong effect to the response variable.
+Being black will increase the log odds of having used an e-cigarette by .67 compared to being white. Being Asian compared to being white will increase it by 1.05. Being Hispanic compared to being white only increases the log odds of having used an e-cig by .005 which correspondes to the small p-value as having not a very strong effect to the response variable.
+
+MO comment: First part - think more about the race component. What does it mean that the coefficient for race2Hispanic is not significantly different from 0? What is the baseline?
+
+MO comment: "Being Hispanic compared to being white only increases the log odds of having used an e-cig by .005 which corresponds to the small p-value as having not a very strong effect to the response variable." -- I don't really know what this means. This sentence seems to conflate small p-value and small effect size and I am confused about what you mean. I think it just needs a little rewording.
 
 Interestingly, the odds of having used an e-cig are, on a log scale, 3.21 times greater if the student is 11 years old than if the student is 9 years old, but the odds are only 1.51 greater if the student is 17 years old. (Interpretation refers back to the reference age which is 9 or should it be from 10-11, 11-12, 12-13 and so forth)
 
@@ -250,7 +258,9 @@ anova(logit_ever_used, test="Chisq")
 Deviance tells us whether the model is a good fit. 
 Null deviance: 103572  on 102744  degrees of freedom
 Residual deviance:  94696  on 102721  degrees of freedom
-The difference between the null deviance and the residual deviacne is 8876 which suggests that the mdoel became better when sex, age, grade, and race were added compared to just the intercept term.
+The difference between the null deviance and the residual deviacne is 8876 which suggests that the model became better when sex, age, grade, and race were added compared to just the intercept term.
+
+MO comment: Interpretation is correct. Question - is it of interest to compare this model to the null model? It might be, but it is a good idea to defend why you are doing this. Otherwise, we may want to be comparing two more complicated models, or doing some variable selection.
 
 ** next to do is to create more models - explanatory variabeles individually, two added together, etc to see whether full model with all demographics is needed
 
@@ -273,3 +283,5 @@ ggplot(data=predicted.data, aes(x=rank, y=probability.of.ever_used_ecig_2)) +
   ylab("Predicted probability of having used an e-cigarette")
 ```
 Does not look like log line/curve even with minor adjustments to shape and stroke
+
+MO comment: what should be on the x-axis? Here it looks like you just have observation number. I would revisit this. I'd also consider adding a geom_line() argument to your plots when you redo them.
